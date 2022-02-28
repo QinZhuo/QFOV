@@ -1,0 +1,39 @@
+{
+  "name": "com.qtool.fov",
+
+  "version": "1.0.1",
+  "displayName": "QTileMap",
+  "description": "QTileMap",
+  "unity": "2019.1",
+ "keywords": [
+    "unity",
+    "TileMap"
+  ],
+  "author": {
+    "name": "QinZhuo",
+    "url": "https://space.bilibili.com/3981300"
+  },
+  "samples": [
+    {
+      "displayName": "Demo",
+      "description": "Demo",
+      "path": "Demo"
+    }
+  ]
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
