@@ -52,7 +52,8 @@ namespace QTool.FOV
         /// <param name="angle">½Ç¶È</param>
         HitInfo AngelCast(float angle,float distance)
         {
-            var dir = new Vector3(Mathf.Sin((angle + transform.eulerAngles.y) * Mathf.Deg2Rad), 0, Mathf.Cos(angle * Mathf.Deg2Rad));
+            var a = (angle + transform.eulerAngles.y);
+            var dir = new Vector3(Mathf.Sin(a * Mathf.Deg2Rad), 0, Mathf.Cos(a * Mathf.Deg2Rad));
             if (Physics.Raycast(transform.position,  dir, out var hit, distance, obstacleMask))
             {
                 return new HitInfo(hit.collider, hit.point, hit.distance, angle);
