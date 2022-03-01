@@ -108,7 +108,6 @@ namespace QTool.FOV
        
         private void OnDrawGizmosSelected()
         {
-            Debug.LogError(hitInfoList.Count);
             foreach (var hit in hitInfoList)
             {
                 Gizmos.color = hit.other!=null ? Color.red : Color.green;
