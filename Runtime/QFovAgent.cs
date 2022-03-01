@@ -20,32 +20,18 @@ namespace QTool.FOV
         [ViewName("最小障碍物尺寸")]
         [Range(0.5f,3f)]
         public float minObstacleSize = 1;
-      
         [ViewName("细化检测角度")]
-        [Range(0.1f, 10)]
-        public float minCastAngel = 5;
+        [Range(0.1f, 2)]
+        public float minCastAngel = 1;
         [ViewName("边缘容忍角度")]
-        [Range(5, 30)]
-        public float maxHitAngle = 20;
+        [Range(5, 20)]
+        public float maxHitAngle =10;
 
         private void LateUpdate()
         {
             FOV();
         }
-        public struct HitInfo
-        {
-            public Collider other;
-            public Vector3 point;
-            public float distance;
-            public float angle;
-            public HitInfo(Collider other, Vector3 point, float distance, float angle )
-            {
-                this.point = point;
-                this.distance = distance;
-                this.angle = angle;
-                this.other = other;
-            }
-        }
+     
         /// <summary>
         /// 根据角度进行射线检测
         /// </summary>
@@ -56,15 +42,15 @@ namespace QTool.FOV
             var dir = new Vector3(Mathf.Sin(a * Mathf.Deg2Rad), 0, Mathf.Cos(a * Mathf.Deg2Rad));
             if (Physics.Raycast(transform.position,  dir, out var hit, distance, obstacleMask))
             {
-                return new HitInfo(hit.collider, hit.point, hit.distance, angle);
+                return new HitInfo(hit.collider,dir, hit.point, hit.distance, angle);
             }
             else
             {
-                return new HitInfo(null, transform.position + dir * distance, distance, angle);
+                return new HitInfo(null,dir, transform.position + dir * distance, distance, angle);
             }
         }
    
-        List<HitInfo> hitInfoList = new List<HitInfo>();
+        public readonly List<HitInfo> hitInfoList = new List<HitInfo>();
         HitInfo? lastHit;
         /// <summary>
         /// 根据前后两个角度的碰撞检测 进行细化的射线检测
@@ -81,8 +67,8 @@ namespace QTool.FOV
             {
                 return;
             }
-            hitInfoList.Add(midHit);
             CastMinAngel(lastHit, midHit, distance);
+            hitInfoList.Add(midHit);
             CastMinAngel(midHit, nextHit, distance);
         }
       
@@ -92,24 +78,27 @@ namespace QTool.FOV
             for (float angel = startAngel; angel <= endAngel;)
             {
                 var hit = AngelCast(angel, distance);
-                hitInfoList.Add(hit);
                 if (lastHit != null)
                 {
                     CastMinAngel(lastHit.Value, hit,distance);
                 }
+                hitInfoList.Add(hit);
                 lastHit = hit;
-                if (angel<endAngel&& angel + checkAngel > endAngel)
+                var offset =hit.other!=null?checkAngel*5: checkAngel;
+                
+                if (angel<endAngel&& angel + offset > endAngel)
                 {
                     angel = endAngel;
                 }
                 else 
                 {
-                    angel += checkAngel;
+                    angel += offset;
                 }
             }
         }
         public float lookCheckAngle => Mathf.Asin(minObstacleSize / lookRadius) * Mathf.Rad2Deg;
         public float bodyCheckAngle => Mathf.Asin(minObstacleSize / bodyRadius) * Mathf.Rad2Deg;
+        
         void FOV()
         {
             hitInfoList.Clear();
@@ -119,11 +108,28 @@ namespace QTool.FOV
        
         private void OnDrawGizmosSelected()
         {
+            Debug.LogError(hitInfoList.Count);
             foreach (var hit in hitInfoList)
             {
                 Gizmos.color = hit.other!=null ? Color.red : Color.green;
                 Gizmos.DrawRay(transform.position, hit.point - transform.position);
             }
+        }
+    }
+    public struct HitInfo
+    {
+        public Collider other;
+        public Vector3 point;
+        public Vector3 dir;
+        public float distance;
+        public float angle;
+        public HitInfo(Collider other,Vector3 dir, Vector3 point, float distance, float angle)
+        {
+            this.dir = dir;
+            this.point = point;
+            this.distance = distance;
+            this.angle = angle;
+            this.other = other;
         }
     }
 }
