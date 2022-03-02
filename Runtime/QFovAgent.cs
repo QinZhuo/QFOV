@@ -6,6 +6,7 @@ namespace QTool.FOV
 {
     public class QFovAgent : MonoBehaviour
     {
+
         [ViewName("遮挡物Mask")]
         public LayerMask obstacleMask;
         [ViewName("感知半径")]
@@ -27,11 +28,51 @@ namespace QTool.FOV
         [Range(5, 20)]
         public float maxHitAngle =10;
 
+        [ViewName("目标Mask")]
+        public LayerMask targetMask;
+        public List<QFovTarget> visibleTargets = new List<QFovTarget>();
+        Vector3? lastPosition;
         private void LateUpdate()
         {
+            FindTarget();
             FOV();
         }
-     
+        List<QFovTarget> disVisibleTargets = new List<QFovTarget>();
+        void FindTarget()
+        {
+            disVisibleTargets.AddRange(visibleTargets);
+            var maxRadius = Mathf.Max(lookRadius, bodyRadius);
+            var others = Physics.OverlapSphere(transform.position, maxRadius, targetMask);
+            foreach (var other in others)
+            {
+                var qTarget = other.GetComponentInParent<QFovTarget>();
+                if (qTarget != null)
+                {
+                    var dir = (qTarget.transform.position - transform.position).normalized;
+                    var maxDis = (Vector3.Angle(dir, transform.forward) < lookAngle / 2) ? lookRadius : bodyRadius;
+                    var dis = Vector3.Distance(qTarget.transform.position, transform.position);
+                    if (dis < maxDis)
+                    {
+                        if(!Physics.Raycast(transform.position, dir, dis, obstacleMask)){
+                            if (disVisibleTargets.Contains(qTarget))
+                            {
+                                disVisibleTargets.Remove(qTarget);
+                            }
+                            else
+                            {
+                                visibleTargets.Add(qTarget);
+                                qTarget.View(true);
+                            }
+                        }
+                    }
+                }
+            }
+            foreach (var v in disVisibleTargets)
+            {
+                visibleTargets.Remove(v);
+                v.View(false);
+            }
+        }
         /// <summary>
         /// 根据角度进行射线检测
         /// </summary>

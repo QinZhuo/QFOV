@@ -15,7 +15,6 @@ namespace QTool.FOV
             {
                 position = position
             };
-          //  v.position.z = 0;
             return v;
         }
         public void OnRenderObject1()
