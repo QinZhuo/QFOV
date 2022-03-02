@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using QTool.Inspector;
+using System.Threading.Tasks;
+
 namespace QTool.FOV
 {
     public class QFovAgent : MonoBehaviour
@@ -34,7 +36,7 @@ namespace QTool.FOV
         Vector3? lastPosition;
         private void LateUpdate()
         {
-            FindObstacle();
+          //  FindObstacle();
           //  FindTarget();
           // FOV();
         }
@@ -155,25 +157,35 @@ namespace QTool.FOV
                 Gizmos.color = hit.other!=null ? Color.red : Color.green;
                 Gizmos.DrawRay(transform.position, hit.point - transform.position);
             }
+            Gizmos.color = Color.blue;
+            Gizmos.DrawRay(viewPoint, viewDir );
+            Gizmos.DrawSphere(nextPoint, 0.1f);
         }
-        Vector3 CheckPoint(Vector3 point,Vector3 center,Vector3 up,Collider other,float maxSize)
+        public Vector3 viewPoint;
+        public Vector3 viewDir;
+        public Vector3 nextPoint;
+        async Task< Vector3> CheckPoint(Vector3 point,Vector3 up,Collider other,float checkDis)
         {
+            await Task.Delay(500);
             //return point;
-           // if (other.bounds.Contains(transform.position)) return point;
+            // if (other.bounds.Contains(transform.position)) return point;
+            viewPoint = point;
             var dir = Vector3.Cross( point - transform.position, up);
-            var newPoint = other.ClosestPoint(center + dir.normalized * maxSize);
-       
-            if (newPoint == point)
+            viewDir = dir.normalized * checkDis;
+            var newPoint = other.ClosestPoint(point + dir.normalized * checkDis);
+            if (Vector3.Distance( newPoint , point)<0.05f)
             {
                 return point;
             }
             else
             {
-                return CheckPoint(newPoint, center, up, other, maxSize);
+                await Task.Delay(300);
+                nextPoint = newPoint;
+                return await CheckPoint(newPoint, up, other, checkDis);
             }
         }
-
-        void FindObstacle()
+        [ViewButton("test")]
+        async void FindObstacle()
         {
             hitInfoList.Clear();
             var maxRadius = Mathf.Max(lookRadius, bodyRadius);
@@ -182,16 +194,16 @@ namespace QTool.FOV
             {
 
 
-                var maxSize = Mathf.Max(other.bounds.size.x, other.bounds.size.z)*1000;
+                var checkDis = Mathf.Max(other.bounds.size.x, other.bounds.size.z)+1000;
                 var center = new Vector3(other.transform.position.x, other.bounds.center.y-other.bounds.size.y, other.transform.position.z);
                 var rightDir = Vector3.Cross(center - transform.position, Vector3.up).normalized;
-                var point = other.ClosestPoint(center + rightDir * maxSize);
-                point = CheckPoint(point,center, Vector3.up, other, maxSize);
-               point.y = transform.position.y;
+                var point = other.ClosestPoint(center + rightDir * checkDis);
+                point = await CheckPoint(point, Vector3.up, other, checkDis);
+                point.y = transform.position.y;
                 hitInfoList.Add(new HitInfo(transform, point, other));
-                var leftPoint = other.ClosestPoint(center - rightDir * maxSize);
-                leftPoint = CheckPoint(leftPoint,center, Vector3.down, other, maxSize);
-               leftPoint.y = transform.position.y;
+                var leftPoint = other.ClosestPoint(center - rightDir * checkDis);
+                leftPoint =await CheckPoint(leftPoint, Vector3.down, other, checkDis);
+                leftPoint.y = transform.position.y;
                 hitInfoList.Add(new HitInfo(transform, leftPoint, other));
                 //var dir = (collider.transform.position - transform.position).normalized;
                 //var maxDis = (Vector3.Angle(dir, transform.forward) < lookAngle / 2) ? lookRadius : bodyRadius;

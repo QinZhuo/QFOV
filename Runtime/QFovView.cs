@@ -7,7 +7,7 @@ namespace QTool.FOV
     {
         public Material mat;
         public QFovAgent agent;
-        [Range(20,100)]
+        [Range(0,100)]
         public float maskRadius=30;
         public VertexInfo VI(Vector3 position)
         {
