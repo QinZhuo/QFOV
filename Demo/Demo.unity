@@ -336,7 +336,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 386702319}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -16.43, y: 0.4, z: 11.31}
+  m_LocalPosition: {x: -16.43, y: 0, z: 11.31}
   m_LocalScale: {x: 5.474215, y: 1.3271383, z: 5.474215}
   m_Children: []
   m_Father: {fileID: 953408497}
@@ -788,7 +788,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mat: {fileID: 2100000, guid: 462ba75572b131242bf4a30527766bed, type: 2}
   agent: {fileID: 601832252}
-  maskRadius: 30
+  meshAngle: 1
+  maskRadius: 50
 --- !u!4 &601832251
 Transform:
   m_ObjectHideFlags: 0
@@ -822,16 +823,9 @@ MonoBehaviour:
   bodyRadius: 30
   lookRadius: 0
   lookAngle: 0
-  minObstacleSize: 3
-  minCastAngel: 0.5
-  maxHitAngle: 20
   targetMask:
     serializedVersion: 2
     m_Bits: 16
-  visibleTargets: []
-  viewPoint: {x: 7.670617, y: -0.62494653, z: 8.575584}
-  viewDir: {x: 3.382254, y: 0, z: -1.9539016}
-  nextPoint: {x: 7.4128737, y: -0.62494653, z: 7.726107}
 --- !u!1 &686185000
 GameObject:
   m_ObjectHideFlags: 0
@@ -1226,7 +1220,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1224762533}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -4.33, y: 0.4, z: 11.31}
+  m_LocalPosition: {x: -4.33, y: 0, z: 11.31}
   m_LocalScale: {x: 5.474215, y: 1.3271383, z: 5.474215}
   m_Children: []
   m_Father: {fileID: 953408497}
@@ -1982,7 +1976,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1783552430}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -4.87, y: 0.4, z: 25.66}
+  m_LocalPosition: {x: -4.87, y: 0, z: 25.66}
   m_LocalScale: {x: 5.474215, y: 1.3271383, z: 5.474215}
   m_Children: []
   m_Father: {fileID: 953408497}
