@@ -34,8 +34,9 @@ namespace QTool.FOV
         Vector3? lastPosition;
         private void LateUpdate()
         {
-            FindTarget();
-            FOV();
+            FindObstacle();
+          //  FindTarget();
+          // FOV();
         }
         List<QFovTarget> disVisibleTargets = new List<QFovTarget>();
         void FindTarget()
@@ -83,11 +84,11 @@ namespace QTool.FOV
             var dir = new Vector3(Mathf.Sin(a * Mathf.Deg2Rad), 0, Mathf.Cos(a * Mathf.Deg2Rad));
             if (Physics.Raycast(transform.position,  dir, out var hit, distance, obstacleMask))
             {
-                return new HitInfo(hit.collider,dir, hit.point, hit.distance, angle);
+                return new HitInfo(angle, dir, hit.distance, hit.point, hit.collider);
             }
             else
             {
-                return new HitInfo(null,dir, transform.position + dir * distance, distance, angle);
+                return new HitInfo(angle,dir, distance, transform.position + dir * distance);
             }
         }
    
@@ -125,7 +126,7 @@ namespace QTool.FOV
                 }
                 hitInfoList.Add(hit);
                 lastHit = hit;
-                var offset =hit.other!=null?checkAngel*5: checkAngel;
+                var offset =hit.other!=null?checkAngel*2: checkAngel;
                 
                 if (angel<endAngel&& angel + offset > endAngel)
                 {
@@ -155,6 +156,68 @@ namespace QTool.FOV
                 Gizmos.DrawRay(transform.position, hit.point - transform.position);
             }
         }
+        Vector3 CheckPoint(Vector3 point,Vector3 center,Vector3 up,Collider other,float maxSize)
+        {
+            //return point;
+           // if (other.bounds.Contains(transform.position)) return point;
+            var dir = Vector3.Cross( point - transform.position, up);
+            var newPoint = other.ClosestPoint(center + dir.normalized * maxSize);
+       
+            if (newPoint == point)
+            {
+                return point;
+            }
+            else
+            {
+                return CheckPoint(newPoint, center, up, other, maxSize);
+            }
+        }
+
+        void FindObstacle()
+        {
+            hitInfoList.Clear();
+            var maxRadius = Mathf.Max(lookRadius, bodyRadius);
+            var obstacles = Physics.OverlapSphere(transform.position, maxRadius, obstacleMask);
+            foreach (var other in obstacles)
+            {
+
+
+                var maxSize = Mathf.Max(other.bounds.size.x, other.bounds.size.z)*1000;
+                var center = new Vector3(other.transform.position.x, other.bounds.center.y-other.bounds.size.y, other.transform.position.z);
+                var rightDir = Vector3.Cross(center - transform.position, Vector3.up).normalized;
+                var point = other.ClosestPoint(center + rightDir * maxSize);
+                point = CheckPoint(point,center, Vector3.up, other, maxSize);
+               point.y = transform.position.y;
+                hitInfoList.Add(new HitInfo(transform, point, other));
+                var leftPoint = other.ClosestPoint(center - rightDir * maxSize);
+                leftPoint = CheckPoint(leftPoint,center, Vector3.down, other, maxSize);
+               leftPoint.y = transform.position.y;
+                hitInfoList.Add(new HitInfo(transform, leftPoint, other));
+                //var dir = (collider.transform.position - transform.position).normalized;
+                //var maxDis = (Vector3.Angle(dir, transform.forward) < lookAngle / 2) ? lookRadius : bodyRadius;
+                //var dis = Vector3.Distance(collider.transform.position, transform.position);
+                //if (dis < maxDis)
+                //{
+                //    if (!Physics.Raycast(transform.position, dir, dis, obstacleMask))
+                //    {
+                //        if (disVisibleTargets.Contains(collider))
+                //        {
+                //            disVisibleTargets.Remove(collider);
+                //        }
+                //        else
+                //        {
+                //            visibleTargets.Add(collider);
+                //            collider.View(true);
+                //        }
+                //    }
+                //}
+            }
+            //foreach (var v in disVisibleTargets)
+            //{
+            //    visibleTargets.Remove(v);
+            //    v.View(false);
+            //}
+        }
     }
     public struct HitInfo
     {
@@ -163,13 +226,22 @@ namespace QTool.FOV
         public Vector3 dir;
         public float distance;
         public float angle;
-        public HitInfo(Collider other,Vector3 dir, Vector3 point, float distance, float angle)
+        public HitInfo(float angle, Vector3 dir, float distance, Vector3 point, Collider other=null)
         {
-            this.dir = dir;
-            this.point = point;
-            this.distance = distance;
             this.angle = angle;
+            this.dir = dir;
+            this.distance = distance;
+            this.point = point;
             this.other = other;
+        }
+        public HitInfo(Transform agent,Vector3 point, Collider other)
+        {
+            this.other = other;
+            this.point = point;
+            var offset = point - agent.position;
+            this.distance = offset.magnitude;
+            this.dir = offset.normalized;
+            this.angle = Vector3.Angle(agent.forward, dir);
         }
     }
 }
