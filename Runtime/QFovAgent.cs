@@ -33,7 +33,11 @@ namespace QTool.FOV
      
         public float GetDistance(float angle)
         {
-            return angle < lookAngle / 2 ? lookRadius : bodyRadius;
+            while (angle<0)
+            {
+                angle += 360;
+            }angle %= 360;
+            return angle < lookAngle / 2|| angle>360-lookAngle/2 ? lookRadius : bodyRadius;
         }
         public Vector3 GetDir(float angle)
         {

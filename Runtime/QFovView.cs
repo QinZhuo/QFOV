@@ -23,24 +23,6 @@ namespace QTool.FOV
             };
             return v;
         }
-        //public void OnRenderObject1()
-        //{
-        //    QGL.Start(mat,0,false);
-        //    HitInfo ? lastInfo = null;
-        //    foreach (var hit in agent.hitInfoList)
-        //    {
-        //        if (lastInfo != null)
-        //        {
-        //            QGL.DrawTriangle(
-        //            VI(transform.position),
-        //            VI(lastInfo.Value.point),
-        //            VI(hit.point));
-        //        }
-        //        lastInfo = hit;
-        //    }
-        //    QGL.End();
-        //}
-
         public void Draw(HitInfo last, HitInfo hit)
         {
 
@@ -49,7 +31,7 @@ namespace QTool.FOV
             var endAngle = hit.angle;
             if (startAngle > endAngle)
             {
-                endAngle += 360;
+                startAngle -= 360;
             }
             var offset = endAngle - startAngle;
             for (float angle = startAngle; angle < endAngle; angle += meshAngle)
@@ -78,10 +60,9 @@ namespace QTool.FOV
                       VI(c));
             }
         }
-        public void Draw(float startAngle,float endAngle,Vector3? startPos=null,Vector3? endPos=null)
+        public void Draw(float startAngle,float endAngle)
         {
-           
-           
+            Draw(new HitInfo { angle = startAngle }, new HitInfo { angle = endAngle });
         }
         
         public void OnRenderObject()
@@ -100,6 +81,10 @@ namespace QTool.FOV
             if (agent.hitInfoList.Count>=2)
             {
                 Draw(lastInfo.Value, agent.hitInfoList[0]);
+            }
+            else
+            {
+                Draw(0, 360);
             }
             QGL.End();
         }
