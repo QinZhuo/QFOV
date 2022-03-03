@@ -8,34 +8,49 @@ namespace QTool.FOV
 {
     public class QFovAgentTest : QFovAgent
     {
-        [ViewName("最小障碍物尺寸")]
+        public enum TestType
+        {
+            常用方法,
+            优化方法,
+        }
+        public TestType type = TestType.优化方法;
+        public bool OldType => type == TestType.常用方法;
+        [ViewName("最小障碍物尺寸",nameof(OldType))]
         [Range(0.5f,3f)]
         public float minObstacleSize = 1;
-        [ViewName("细化检测角度")]
+        [ViewName("细化检测角度", nameof(OldType))]
         [Range(0.1f, 2)]
         public float minCastAngel = 1;
-        [ViewName("边缘容忍角度")]
+        [ViewName("边缘容忍角度", nameof(OldType))]
         [Range(5, 20)]
         public float maxHitAngle =10;
         Vector3? lastPosition;
         protected override void LateUpdate()
         {
+            if (OldType)
+            {
+                RayFOV();
+            }
+            else
+            { 
+                FindObstacleFOV();
+            }
         }
         [ContextMenu("测试")]
         public void Test()
         {
-            Tool.RunTimeCheck("老版本测试", () =>
+            Tool.RunTimeCheck("常用方法", () =>
             {
                 for (int i = 0; i < 1000; i++)
                 {
-                    FOV();
+                    RayFOV();
                 }
             });
-            Tool.RunTimeCheck("新版本测试", () =>
+            Tool.RunTimeCheck("优化后", () =>
             {
                 for (int i = 0; i < 1000; i++)
                 {
-                    FindObstacle();
+                    FindObstacleFOV();
                 }
             });
         }
@@ -90,7 +105,7 @@ namespace QTool.FOV
         public float lookCheckAngle => Mathf.Asin(minObstacleSize / lookRadius) * Mathf.Rad2Deg;
         public float bodyCheckAngle => Mathf.Asin(minObstacleSize / bodyRadius) * Mathf.Rad2Deg;
         
-        void FOV()
+        void RayFOV()
         {
             hitInfoList.Clear();
             AngelFov(-lookAngle/2,lookAngle/2,lookCheckAngle);

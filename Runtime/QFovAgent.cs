@@ -13,10 +13,10 @@ namespace QTool.FOV
         public LayerMask obstacleMask;
         [ViewName("感知半径")]
         [Range(0,30)]
-        public float bodyRadius = 3;
+        public float bodyRadius = 10;
         [ViewName("视野半径")]
         [Range(0, 100)]
-        public float lookRadius = 10;
+        public float lookRadius = 15;
         [ViewName("视野角度")]
         [Range(0, 180)]
         public float lookAngle = 90;
@@ -27,7 +27,7 @@ namespace QTool.FOV
         Vector3? lastPosition;
         protected virtual void LateUpdate()
         {
-            FindObstacle();
+            FindObstacleFOV();
             FindTarget();
         }
      
@@ -85,9 +85,9 @@ namespace QTool.FOV
         /// 根据角度进行射线检测
         /// </summary>
         /// <param name="angle">角度</param>
-        protected HitInfo AngelCast(float angle)
+        protected HitInfo AngelCast(float angle,float minDistance=-1)
         {
-            var distance = GetDistance(angle);
+           var distance = Mathf.Max(minDistance, GetDistance(angle));
             var dir =GetDir(angle) ;
             if (Physics.Raycast(transform.position,  dir, out var hit, distance, obstacleMask))
             {
@@ -123,13 +123,21 @@ namespace QTool.FOV
             }
         }
         protected List<Collider> checkList = new List<Collider>();
-        List<float> checkAngle = new List<float>();
-        protected void FindObstacle()
+        List<CheckAngle> checkAngle = new List<CheckAngle>();
+        public struct CheckAngle
+        {
+            public float angle;
+            public float distance;
+            public HitInfo fromAngle;
+        }
+        protected void FindObstacleFOV()
         {
             checkAngle.Clear();
             hitInfoList.Clear();
             var maxRadius = Mathf.Max(lookRadius, bodyRadius);
             checkList.Clear();
+          //  checkAngle.Add(lookAngle / 2);
+           // checkAngle.Add(lookAngle / 2);
             checkList.AddRange( Physics.OverlapSphere(transform.position, maxRadius, obstacleMask));
             foreach (var o in Physics.OverlapSphere(transform.position, 0.1f, obstacleMask))
             {
@@ -145,25 +153,16 @@ namespace QTool.FOV
                 point.y = transform.position.y;
               
                 var hit = new HitInfo(transform, point, other);
-                checkAngle.Add(hit.angle-0.05f);
-                checkAngle.Add(hit.angle + 0.05f);
-                //if (hit.distance < GetDistance(hit.angle))
-                //{
-                //    var checkHit = AngelCast(hit.angle - 0.1f);
-
-                //    if (checkHit.distance > hit.distance)
-                //    {
-                //        hitInfoList.Add(checkHit);
-                //        hitInfoList.Add(hit);
-                //    }
-                //}
-
+                checkAngle.Add(new CheckAngle { angle = hit.angle - 0.05f, distance = hit.distance });
+                checkAngle.Add(new CheckAngle { angle = hit.angle + 0.05f, distance = hit.distance });
                 var leftPoint = other.ClosestPoint(center - rightDir * checkDis);
                 leftPoint =CheckPoint(leftPoint, Vector3.down, other, checkDis);
                 leftPoint.y = transform.position.y;
                 hit = new HitInfo(transform, leftPoint, other);
-                checkAngle.Add(hit.angle - 0.05f);
-                checkAngle.Add(hit.angle + 0.05f);
+                checkAngle.Add(new CheckAngle { angle = hit.angle - 0.05f, distance = hit.distance });
+                checkAngle.Add(new CheckAngle { angle = hit.angle + 0.05f, distance = hit.distance });
+                //checkAngle.Add(hit.angle - 0.05f);
+                //   checkAngle.Add(hit.angle + 0.05f);
                 //if (hit.distance < GetDistance(hit.angle))
                 //{
                 //    var checkHit = AngelCast(hit.angle +0.1f);
@@ -174,16 +173,17 @@ namespace QTool.FOV
                 //    }
                 //}
             }
-            
-            checkAngle.Sort((a, b) =>
-            {
-                if (a == b) return 0;
-                return (a > b)?1:-1;
-            });
+
             foreach (var angle in checkAngle)
             {
-                hitInfoList.Add(AngelCast(angle));
+                hitInfoList.Add( AngelCast(angle.angle, angle.distance));
             }
+
+            hitInfoList.Sort((a, b) =>
+            {
+                if (a.angle == b.angle) return 0;
+                return (a.angle > b.angle) ? 1 : -1;
+            });
             //hitInfoList.RemoveAll((a) =>
             //{
             //    if (last != null)

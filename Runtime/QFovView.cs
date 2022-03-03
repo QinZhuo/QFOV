@@ -23,6 +23,7 @@ namespace QTool.FOV
             };
             return v;
         }
+       
         public void Draw(HitInfo last, HitInfo hit)
         {
 
@@ -41,12 +42,24 @@ namespace QTool.FOV
                 {
                     nextAngle = endAngle;
                 }
+               
                 var dir = agent.GetDir(angle);
+                Vector3 GetPos(float angle, Vector3 dir)
+                {
+                    var pos= Vector3.Lerp(last.point, hit.point, (angle - startAngle) / offset);
+                    var dis = (pos - transform.position).magnitude;
+                    var maxDis = agent.GetDistance(angle);
+                    if (dis > maxDis)
+                    {
+                        return (agent.transform.position + dir * agent.GetDistance(angle)); ;
+                    }
+                    return pos;
+                }
                 var nextDir = agent.GetDir(nextAngle);
-                var a = hasObstacle ? Vector3.Lerp(last.point, hit.point, (angle - startAngle) / offset)
+                var a = hasObstacle ? GetPos(angle, dir)
                     : (agent.transform.position + dir * agent.GetDistance(angle));
                 var b = agent.transform.position + dir * maskRadius;
-                var c = hasObstacle ? Vector3.Lerp(last.point, hit.point, (nextAngle - startAngle) / offset)
+                var c = hasObstacle ? GetPos(nextAngle, nextDir)
                     : (agent.transform.position + nextDir * agent.GetDistance(nextAngle));
                 var d = agent.transform.position + nextDir * maskRadius;
 
@@ -67,7 +80,7 @@ namespace QTool.FOV
         
         public void OnRenderObject()
         {
-            
+            if (agent == null) return;
             QGL.Start(mat, 0, false);
             HitInfo? lastInfo = null;
             foreach (var hit in agent.hitInfoList)
