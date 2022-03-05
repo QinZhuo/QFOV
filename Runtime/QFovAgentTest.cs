@@ -8,6 +8,7 @@ namespace QTool.FOV
 {
     public class QFovAgentTest : QFovAgent
     {
+     
         public enum TestType
         {
             常用方法,
@@ -24,9 +25,11 @@ namespace QTool.FOV
         [ViewName("边缘容忍角度", nameof(OldType))]
         [Range(5, 20)]
         public float maxHitAngle =10;
+        public Transform moveTarget;
         Vector3? lastPosition;
         protected override void LateUpdate()
         {
+          
             if (OldType)
             {
                 RayFOV();
@@ -35,6 +38,15 @@ namespace QTool.FOV
             { 
                 FindObstacleFOV();
             }
+           
+        }
+        private void Update()
+        {
+            var moveDir = new Vector3(
+                Input.GetKey(KeyCode.D) ? 1 : (Input.GetKey(KeyCode.A) ? -1 : 0), 0,
+                Input.GetKey(KeyCode.W) ? 1 : (Input.GetKey(KeyCode.S) ? -1 : 0));
+            moveTarget.position += moveDir * 2 * Time.deltaTime;
+            transform.LookAt(Camera.main.ScreenPointToRay(Input.mousePosition).RayCastPlane(Vector3.up, Vector3.zero));
         }
         [ContextMenu("测试")]
         public void Test()

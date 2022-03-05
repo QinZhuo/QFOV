@@ -2,8 +2,8 @@
   "name": "com.qtool.fov",
 
   "version": "1.0.1",
-  "displayName": "QTileMap",
-  "description": "QTileMap",
+  "displayName": "QFOV",
+  "description": "QFOV",
   "unity": "2019.1",
  "keywords": [
     "unity",

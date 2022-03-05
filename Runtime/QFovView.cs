@@ -7,7 +7,7 @@ namespace QTool.FOV
     {
         public Material mat;
         public QFovAgent agent;
-        [Range(1f, 15)]
+        [Range(0.1f, 15)]
         public float meshAngle = 1;
         [Range(0,100)]
         public float maskRadius=50;
@@ -47,7 +47,7 @@ namespace QTool.FOV
                 Vector3 GetPos(float angle, Vector3 dir)
                 {
                     var pos= Vector3.Lerp(last.point, hit.point, (angle - startAngle) / offset);
-                    var dis = (pos - transform.position).magnitude;
+                    var dis = (pos - agent.transform.position).magnitude;
                     var maxDis = agent.GetDistance(angle);
                     if (dis > maxDis)
                     {
