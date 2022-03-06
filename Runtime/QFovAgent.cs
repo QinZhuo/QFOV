@@ -56,11 +56,11 @@ namespace QTool.FOV
                 if (qTarget != null)
                 {
                     var dir = (qTarget.transform.position - transform.position).normalized;
-                    var maxDis = (Vector3.Angle(dir, transform.forward) < lookAngle / 2) ? lookRadius : bodyRadius;
+                    var maxDis = GetDistance(Vector3.Angle(dir, transform.forward)) ;
                     var dis = Vector3.Distance(qTarget.transform.position, transform.position);
                     if (dis < maxDis)
                     {
-                        if(!Physics.Raycast(transform.position, dir, dis, obstacleMask)){
+                        if (!Physics.Raycast(transform.position, dir, dis, obstacleMask)){
                             if (disVisibleTargets.Contains(qTarget))
                             {
                                 disVisibleTargets.Remove(qTarget);
@@ -69,6 +69,7 @@ namespace QTool.FOV
                             {
                                 visibleTargets.Add(qTarget);
                                 qTarget.View(true);
+                               
                             }
                         }
                     }
@@ -123,16 +124,14 @@ namespace QTool.FOV
             }
         }
         protected List<Collider> checkList = new List<Collider>();
-        List<CheckAngle> checkAngle = new List<CheckAngle>();
-        public struct CheckAngle
-        {
-            public float angle;
-            public float distance;
-            public HitInfo fromAngle;
-        }
+        //public struct CheckAngle
+        //{
+        //    public float angle;
+        //    public float distance;
+        //    public HitInfo fromAngle;
+        //}
         protected void FindObstacleFOV()
         {
-            checkAngle.Clear();
             hitInfoList.Clear();
             var maxRadius = Mathf.Max(lookRadius, bodyRadius);
             checkList.Clear();
@@ -153,49 +152,31 @@ namespace QTool.FOV
                 point.y = transform.position.y;
               
                 var hit = new HitInfo(transform, point, other);
-                checkAngle.Add(new CheckAngle { angle = hit.angle - 0.05f, distance = hit.distance });
-                checkAngle.Add(new CheckAngle { angle = hit.angle + 0.05f, distance = hit.distance });
-                var leftPoint = other.ClosestPoint(center - rightDir * checkDis);
+                var offsetHit = AngelCast(hit.angle - 0.05f, hit.distance);
+                AddHitInfo(hit, offsetHit);
+                 var leftPoint = other.ClosestPoint(center - rightDir * checkDis);
                 leftPoint =CheckPoint(leftPoint, Vector3.down, other, checkDis);
                 leftPoint.y = transform.position.y;
                 hit = new HitInfo(transform, leftPoint, other);
-                checkAngle.Add(new CheckAngle { angle = hit.angle - 0.05f, distance = hit.distance });
-                checkAngle.Add(new CheckAngle { angle = hit.angle + 0.05f, distance = hit.distance });
-                //checkAngle.Add(hit.angle - 0.05f);
-                //   checkAngle.Add(hit.angle + 0.05f);
-                //if (hit.distance < GetDistance(hit.angle))
-                //{
-                //    var checkHit = AngelCast(hit.angle +0.1f);
-                //    if (checkHit.distance > hit.distance)
-                //    {
-                //        hitInfoList.Add(hit);
-                //        hitInfoList.Add(checkHit);
-                //    }
-                //}
+                offsetHit = AngelCast(hit.angle + 0.05f, hit.distance);
+                AddHitInfo(hit, offsetHit);
             }
-
-            foreach (var angle in checkAngle)
-            {
-                hitInfoList.Add( AngelCast(angle.angle, angle.distance));
-            }
-
             hitInfoList.Sort((a, b) =>
             {
                 if (a.angle == b.angle) return 0;
                 return (a.angle > b.angle) ? 1 : -1;
             });
-            //hitInfoList.RemoveAll((a) =>
-            //{
-            //    if (last != null)
-            //    {
-            //        if(last. Mathf.Abs(a.angle - last.Value.angle) < 1f)
-            //        {
-            //            return true;
-            //        } 
-            //    }
-            //    last = a;
-            //    return false;
-            //});
+        }
+        public void AddHitInfo(HitInfo hit,HitInfo offsetHit)
+        {
+            if (offsetHit.distance < hit.distance)
+            {
+                hit.point += hit.dir * (offsetHit.distance-hit.distance);
+                hit.distance = offsetHit.distance;
+                hit.other = offsetHit.other;
+            }
+            hitInfoList.Add(hit);
+            hitInfoList.Add(offsetHit);
         }
     }
     public struct HitInfo
@@ -208,6 +189,7 @@ namespace QTool.FOV
         public HitInfo(float angle, Vector3 dir, float distance, Vector3 point, Collider other=null)
         {
             this.angle = angle;
+
             this.dir = dir;
             this.distance = distance;
             this.point = point;

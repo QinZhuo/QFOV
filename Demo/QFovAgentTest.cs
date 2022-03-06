@@ -29,7 +29,7 @@ namespace QTool.FOV
         Vector3? lastPosition;
         protected override void LateUpdate()
         {
-          
+            FindTarget();
             if (OldType)
             {
                 RayFOV();

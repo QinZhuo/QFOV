@@ -801,16 +801,16 @@ MonoBehaviour:
   obstacleMask:
     serializedVersion: 2
     m_Bits: 1
-  bodyRadius: 10
-  lookRadius: 15
-  lookAngle: 90
+  bodyRadius: 30
+  lookRadius: 0
+  lookAngle: 0
   targetMask:
     serializedVersion: 2
     m_Bits: 16
   type: 1
   minObstacleSize: 1
-  minCastAngel: 1
-  maxHitAngle: 10
+  minCastAngel: 0.1
+  maxHitAngle: 20
   moveTarget: {fileID: 1322108884}
 --- !u!4 &601832251
 Transform:
@@ -1804,6 +1804,10 @@ PrefabInstance:
     - target: {fileID: 4097843907139765670, guid: cc081bdd0ea76dc4a93bd1ae7d6c49f7, type: 3}
       propertyPath: m_Name
       value: Enemy (3)
+      objectReference: {fileID: 0}
+    - target: {fileID: 4097843907139765670, guid: cc081bdd0ea76dc4a93bd1ae7d6c49f7, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: cc081bdd0ea76dc4a93bd1ae7d6c49f7, type: 3}
