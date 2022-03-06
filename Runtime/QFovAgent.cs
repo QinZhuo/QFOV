@@ -114,7 +114,7 @@ namespace QTool.FOV
         {
             var dir = Vector3.Cross( point - transform.position, up);
             var newPoint = other.ClosestPoint(point + dir.normalized * checkDis);
-            if (Vector3.Distance( newPoint , point)<0.05f)
+            if (Vector3.Distance( newPoint , point)<0.01f)
             {
                 return point;
             }
@@ -152,13 +152,13 @@ namespace QTool.FOV
                 point.y = transform.position.y;
               
                 var hit = new HitInfo(transform, point, other);
-                var offsetHit = AngelCast(hit.angle - 0.05f, hit.distance);
+                var offsetHit = AngelCast(hit.angle - 0.01f, hit.distance);
                 AddHitInfo(hit, offsetHit);
                  var leftPoint = other.ClosestPoint(center - rightDir * checkDis);
                 leftPoint =CheckPoint(leftPoint, Vector3.down, other, checkDis);
                 leftPoint.y = transform.position.y;
                 hit = new HitInfo(transform, leftPoint, other);
-                offsetHit = AngelCast(hit.angle + 0.05f, hit.distance);
+                offsetHit = AngelCast(hit.angle + 0.01f, hit.distance);
                 AddHitInfo(hit, offsetHit);
             }
             hitInfoList.Sort((a, b) =>
