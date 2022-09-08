@@ -9,18 +9,18 @@ namespace QTool.FOV
     public class QFovAgent : MonoBehaviour
     {
 
-        [ViewName("ÕÚµ²ÎïMask")]
+        [QName("é®æŒ¡ç‰©Mask")]
         public LayerMask obstacleMask;
-        [ViewName("¸ĞÖª°ë¾¶")]
+        [QName("æ„ŸçŸ¥åŠå¾„")]
         [Range(0,30)]
         public float bodyRadius = 10;
-        [ViewName("ÊÓÒ°°ë¾¶")]
+        [QName("è§†é‡åŠå¾„")]
         [Range(0, 100)]
         public float lookRadius = 15;
-        [ViewName("ÊÓÒ°½Ç¶È")]
+        [QName("è§†é‡è§’åº¦")]
         [Range(0, 180)]
         public float lookAngle = 90;
-        [ViewName("Ä¿±êMask")]
+        [QName("ç›®æ ‡Mask")]
         public LayerMask targetMask;
         public readonly List<QFovTarget> visibleTargets = new List<QFovTarget>();
         public readonly List<HitInfo> hitInfoList = new List<HitInfo>();
@@ -83,9 +83,9 @@ namespace QTool.FOV
         }
 
         /// <summary>
-        /// ¸ù¾İ½Ç¶È½øĞĞÉäÏß¼ì²â
+        /// æ ¹æ®è§’åº¦è¿›è¡Œå°„çº¿æ£€æµ‹
         /// </summary>
-        /// <param name="angle">½Ç¶È</param>
+        /// <param name="angle">è§’åº¦</param>
         protected HitInfo AngelCast(float angle,float minDistance=-1)
         {
            var distance = Mathf.Max(minDistance, GetDistance(angle));

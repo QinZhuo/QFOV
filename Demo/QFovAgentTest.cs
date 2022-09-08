@@ -11,18 +11,18 @@ namespace QTool.FOV
      
         public enum TestType
         {
-            Ёёсц╥╫╥╗,
-            се╩╞╥╫╥╗,
+            Е╦╦Г■╗Ф√╧ФЁ∙,
+            Д╪≤Е▄√Ф√╧ФЁ∙,
         }
-        public TestType type = TestType.се╩╞╥╫╥╗;
-        public bool OldType => type == TestType.Ёёсц╥╫╥╗;
-        [ViewName("вНп║уо╟╜нОЁъ╢Г",nameof(OldType))]
+        public TestType type = TestType.Д╪≤Е▄√Ф√╧ФЁ∙;
+        public bool OldType => type == TestType.Е╦╦Г■╗Ф√╧ФЁ∙;
+        [QName("Ф°─Е╟▐И °Г╒█Г┴╘Е╟╨Е╞╦",nameof(OldType))]
         [Range(0.5f,3f)]
         public float minObstacleSize = 1;
-        [ViewName("о╦╩╞╪Л╡Б╫г╤х", nameof(OldType))]
+        [QName("Г╩├Е▄√Фё─Ф╣▀Х╖▓Е╨╕", nameof(OldType))]
         [Range(0.1f, 2)]
         public float minCastAngel = 1;
-        [ViewName("╠ът╣хщхл╫г╤х", nameof(OldType))]
+        [QName("Х╬╧Г╪≤Е╝╧Е©█Х╖▓Е╨╕", nameof(OldType))]
         [Range(5, 20)]
         public float maxHitAngle =10;
         public Transform moveTarget;
@@ -48,17 +48,17 @@ namespace QTool.FOV
             moveTarget.position += moveDir * 2 * Time.deltaTime;
             transform.LookAt(Camera.main.ScreenPointToRay(Input.mousePosition).RayCastPlane(Vector3.up, Vector3.zero));
         }
-        [ContextMenu("╡Бйт")]
+        [ContextMenu("Ф╣▀Х╞∙")]
         public void Test()
         {
-            Tool.RunTimeCheck("Ёёсц╥╫╥╗", () =>
+            Tool.RunTimeCheck("Е╦╦Г■╗Ф√╧ФЁ∙", () =>
             {
                 for (int i = 0; i < 1000; i++)
                 {
                     RayFOV();
                 }
             });
-            Tool.RunTimeCheck("се╩╞╨С", () =>
+            Tool.RunTimeCheck("Д╪≤Е▄√Е░▌", () =>
             {
                 for (int i = 0; i < 1000; i++)
                 {
@@ -71,10 +71,10 @@ namespace QTool.FOV
       
         HitInfo? lastHit;
         /// <summary>
-        /// ╦Ы╬щг╟╨Са╫╦Ж╫г╤х╣деЖв╡╪Л╡Б ╫Ьппо╦╩╞╣диДоъ╪Л╡Б
+        /// Ф═╧Ф█╝Е┴█Е░▌Д╦╓Д╦╙Х╖▓Е╨╕Г └Г╒╟Ф▓·Фё─Ф╣▀ Х©⌡Х║▄Г╩├Е▄√Г └Е╟└Г╨©Фё─Ф╣▀
         /// </summary>
-        /// <param name="lastHit">иор╩╦Ж╫г╤х╣деЖв╡пео╒</param>
-        /// <param name="nextHit">обр╩╦Ж╫г╤х╣деЖв╡пео╒</param>
+        /// <param name="lastHit">Д╦┼Д╦─Д╦╙Х╖▓Е╨╕Г └Г╒╟Ф▓·Д©║Ф│╞</param>
+        /// <param name="nextHit">Д╦▀Д╦─Д╦╙Х╖▓Е╨╕Г └Г╒╟Ф▓·Д©║Ф│╞</param>
         void CastMinAngel(HitInfo lastHit,HitInfo nextHit)
         {
             if (lastHit.other == null && nextHit.other == null) return;
