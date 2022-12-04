@@ -8,9 +8,7 @@ namespace QTool.FOV
 {
     public class QFovAgent : MonoBehaviour
     {
-
-        [QName("遮挡物Mask")]
-        public LayerMask obstacleMask;
+		[QGroup(true)]
         [QName("感知半径")]
         [Range(0,30)]
         public float bodyRadius = 10;
@@ -19,18 +17,38 @@ namespace QTool.FOV
         public float lookRadius = 15;
         [QName("视野角度")]
         [Range(0, 180)]
-        public float lookAngle = 90;
-        [QName("目标Mask")]
-        public LayerMask targetMask;
-        public readonly List<QFovTarget> visibleTargets = new List<QFovTarget>();
-        public readonly List<HitInfo> hitInfoList = new List<HitInfo>();
-        Vector3? lastPosition;
-        protected virtual void LateUpdate()
-        {
-            FindObstacleFOV();
-            FindTarget();
+		public float lookAngle = 90;
+		[QName("遮挡物Mask")]
+		public LayerMask obstacleMask;
+		[QName("模式")]
+		[QGroup(false)]
+		public QFovMode Mode = QFovMode.边缘检测;
+		[QGroup(true)]
+		[QName("最小障碍物尺寸", nameof(Mode) + "==" + nameof(QFovMode.射线检测))]
+		[Range(0.5f, 3f)]
+		public float minObstacleSize = 1;
+		[QName("细化检测角度", nameof(Mode) + "==" + nameof(QFovMode.射线检测))]
+		[Range(0.1f, 2)]
+		public float minCastAngel = 1;
+		[QName("边缘容忍角度", nameof(Mode) + "==" + nameof(QFovMode.射线检测))]
+		[Range(5, 20)]
+		[QGroup(false)]
+		public float maxHitAngle = 10;
+
+
+		public readonly List<QFovHitInfo> hitInfoList = new List<QFovHitInfo>();
+		Vector3? lastPosition;
+		protected virtual void LateUpdate()
+		{
+			if (Mode == QFovMode.射线检测)
+			{
+				RayFOV();
+			}
+			else
+			{
+				FindObstacleFOV();
+			}
         }
-     
         public float GetDistance(float angle)
         {
             while (angle<0)
@@ -44,59 +62,22 @@ namespace QTool.FOV
             angle += transform.eulerAngles.y;
             return new Vector3(Mathf.Sin(angle * Mathf.Deg2Rad), 0, Mathf.Cos(angle * Mathf.Deg2Rad));
         }
-        List<QFovTarget> disVisibleTargets = new List<QFovTarget>();
-        protected void FindTarget()
-        {
-            disVisibleTargets.AddRange(visibleTargets);
-            var maxRadius = Mathf.Max(lookRadius, bodyRadius);
-            var others = Physics.OverlapSphere(transform.position, maxRadius, targetMask);
-            foreach (var other in others)
-            {
-                var qTarget = other.GetComponentInParent<QFovTarget>();
-                if (qTarget != null)
-                {
-                    var dir = (qTarget.transform.position - transform.position).normalized;
-                    var maxDis = GetDistance(Vector3.Angle(dir, transform.forward)) ;
-                    var dis = Vector3.Distance(qTarget.transform.position, transform.position);
-                    if (dis < maxDis)
-                    {
-                        if (!Physics.Raycast(transform.position, dir, dis, obstacleMask)){
-                            if (disVisibleTargets.Contains(qTarget))
-                            {
-                                disVisibleTargets.Remove(qTarget);
-                            }
-                            else
-                            {
-                                visibleTargets.Add(qTarget);
-                                qTarget.View(true);
-                               
-                            }
-                        }
-                    }
-                }
-            }
-            foreach (var v in disVisibleTargets)
-            {
-                visibleTargets.Remove(v);
-                v.View(false);
-            }
-        }
-
+       
         /// <summary>
         /// 根据角度进行射线检测
         /// </summary>
         /// <param name="angle">角度</param>
-        protected HitInfo AngelCast(float angle,float minDistance=-1)
+        protected QFovHitInfo AngelCast(float angle,float minDistance=-1)
         {
            var distance = Mathf.Max(minDistance, GetDistance(angle));
             var dir =GetDir(angle) ;
             if (Physics.Raycast(transform.position,  dir, out var hit, distance, obstacleMask))
             {
-                return new HitInfo(angle, dir, hit.distance, hit.point, hit.collider);
+                return new QFovHitInfo(angle, dir, hit.distance, hit.point, hit.collider);
             }
             else
             {
-                return new HitInfo(angle,dir, distance, transform.position + dir * distance);
+                return new QFovHitInfo(angle,dir, distance, transform.position + dir * distance);
             }
         }
 
@@ -124,19 +105,11 @@ namespace QTool.FOV
             }
         }
         protected List<Collider> checkList = new List<Collider>();
-        //public struct CheckAngle
-        //{
-        //    public float angle;
-        //    public float distance;
-        //    public HitInfo fromAngle;
-        //}
         protected void FindObstacleFOV()
         {
             hitInfoList.Clear();
             var maxRadius = Mathf.Max(lookRadius, bodyRadius);
             checkList.Clear();
-          //  checkAngle.Add(lookAngle / 2);
-           // checkAngle.Add(lookAngle / 2);
             checkList.AddRange( Physics.OverlapSphere(transform.position, maxRadius, obstacleMask));
             foreach (var o in Physics.OverlapSphere(transform.position, 0.1f, obstacleMask))
             {
@@ -151,13 +124,13 @@ namespace QTool.FOV
                 point =CheckPoint(point, Vector3.up, other, checkDis);
                 point.y = transform.position.y;
               
-                var hit = new HitInfo(transform, point, other);
+                var hit = new QFovHitInfo(transform, point, other);
                 var offsetHit = AngelCast(hit.angle - 0.01f, hit.distance);
                 AddHitInfo(hit, offsetHit);
                  var leftPoint = other.ClosestPoint(center - rightDir * checkDis);
                 leftPoint =CheckPoint(leftPoint, Vector3.down, other, checkDis);
                 leftPoint.y = transform.position.y;
-                hit = new HitInfo(transform, leftPoint, other);
+                hit = new QFovHitInfo(transform, leftPoint, other);
                 offsetHit = AngelCast(hit.angle + 0.01f, hit.distance);
                 AddHitInfo(hit, offsetHit);
             }
@@ -167,7 +140,8 @@ namespace QTool.FOV
                 return (a.angle > b.angle) ? 1 : -1;
             });
         }
-        public void AddHitInfo(HitInfo hit,HitInfo offsetHit)
+	
+		public void AddHitInfo(QFovHitInfo hit,QFovHitInfo offsetHit)
         {
             if (offsetHit.distance < hit.distance)
             {
@@ -177,16 +151,72 @@ namespace QTool.FOV
             }
             hitInfoList.Add(hit);
             hitInfoList.Add(offsetHit);
-        }
-    }
-    public struct HitInfo
+		}
+		void RayFOV()
+		{
+			hitInfoList.Clear();
+			AngelFov(-lookAngle / 2, lookAngle / 2, lookCheckAngle);
+			AngelFov(lookAngle / 2, 360 - lookAngle / 2, bodyCheckAngle);
+		}
+		QFovHitInfo? lastHit;
+		/// <summary>
+		/// 根据前后两个角度的碰撞检测 进行细化的射线检测
+		/// </summary>
+		/// <param name="lastHit">上一个角度的碰撞信息</param>
+		/// <param name="nextHit">下一个角度的碰撞信息</param>
+		void CastMinAngel(QFovHitInfo lastHit, QFovHitInfo nextHit)
+		{
+			if (lastHit.other == null && nextHit.other == null) return;
+			var angleOffset = nextHit.angle - lastHit.angle;
+			if (angleOffset <= minCastAngel) return;
+			var midHit = AngelCast(lastHit.angle + angleOffset / 2);
+			if (lastHit.other == nextHit.other && Vector3.Angle(midHit.point - lastHit.point, nextHit.point - midHit.point) <= maxHitAngle)
+			{
+				return;
+			}
+			CastMinAngel(lastHit, midHit);
+			hitInfoList.Add(midHit);
+			CastMinAngel(midHit, nextHit);
+		}
+
+		void AngelFov(float startAngel, float endAngel, float checkAngel)
+		{
+			if (checkAngel <= 0) return;
+			for (float angel = startAngel; angel <= endAngel;)
+			{
+				var hit = AngelCast(angel);
+				if (lastHit != null)
+				{
+					CastMinAngel(lastHit.Value, hit);
+				}
+				hitInfoList.Add(hit);
+				lastHit = hit;
+				var offset = hit.other != null ? checkAngel * 2 : checkAngel;
+
+				if (angel < endAngel && angel + offset > endAngel)
+				{
+					angel = endAngel;
+				}
+				else
+				{
+					angel += offset;
+				}
+			}
+		}
+		public float lookCheckAngle => Mathf.Asin(minObstacleSize / lookRadius) * Mathf.Rad2Deg;
+		public float bodyCheckAngle => Mathf.Asin(minObstacleSize / bodyRadius) * Mathf.Rad2Deg;
+	}
+	/// <summary>
+	/// 迷雾碰撞信息
+	/// </summary>
+    public struct QFovHitInfo
     {
         public Collider other;
         public Vector3 point;
         public Vector3 dir;
         public float distance;
         public float angle;
-        public HitInfo(float angle, Vector3 dir, float distance, Vector3 point, Collider other=null)
+        public QFovHitInfo(float angle, Vector3 dir, float distance, Vector3 point, Collider other=null)
         {
             this.angle = angle;
 
@@ -195,7 +225,7 @@ namespace QTool.FOV
             this.point = point;
             this.other = other;
         }
-        public HitInfo(Transform agent,Vector3 point, Collider other)
+        public QFovHitInfo(Transform agent,Vector3 point, Collider other)
         {
             this.other = other;
             this.point = point;
@@ -208,5 +238,11 @@ namespace QTool.FOV
                 angle = 360-angle;
             }
         }
-    }
+
+	}
+	public enum QFovMode
+	{
+		边缘检测 = 0,
+		射线检测 = 1,
+	}
 }

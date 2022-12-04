@@ -24,7 +24,7 @@ namespace QTool.FOV
             return v;
         }
        
-        public void Draw(HitInfo last, HitInfo hit)
+        public void Draw(QFovHitInfo last, QFovHitInfo hit)
         {
 
             var hasObstacle = last.other != null&&hit.other!=null;
@@ -75,14 +75,14 @@ namespace QTool.FOV
         }
         public void Draw(float startAngle,float endAngle)
         {
-            Draw(new HitInfo { angle = startAngle }, new HitInfo { angle = endAngle });
+            Draw(new QFovHitInfo { angle = startAngle }, new QFovHitInfo { angle = endAngle });
         }
         
         public void OnRenderObject()
         {
             if (agent == null) return;
             QGL.Start(mat, 0, false);
-            HitInfo? lastInfo = null;
+            QFovHitInfo? lastInfo = null;
             foreach (var hit in agent.hitInfoList)
             {
                 if (lastInfo != null)
