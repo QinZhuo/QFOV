@@ -42,11 +42,20 @@ namespace QTool.FOV
         }
         private void Update()
         {
-            var moveDir = new Vector3(
+#if ENABLE_INPUT_SYSTEM
+			var mousePos = UnityEngine.InputSystem.Mouse.current.position.ReadValue();
+			var keyboard = UnityEngine.InputSystem.Keyboard.current;
+			var moveDir = new Vector3(
+				keyboard.dKey.isPressed ? 1 : (keyboard.aKey.isPressed ? -1 : 0), 0,
+				keyboard.wKey.isPressed ? 1 : (keyboard.sKey.isPressed ? -1 : 0));
+#else
+			var mousePos = Input.mousePosition;
+			var moveDir = new Vector3(
                 Input.GetKey(KeyCode.D) ? 1 : (Input.GetKey(KeyCode.A) ? -1 : 0), 0,
                 Input.GetKey(KeyCode.W) ? 1 : (Input.GetKey(KeyCode.S) ? -1 : 0));
-            moveTarget.position += moveDir * 2 * Time.deltaTime;
-            transform.LookAt(Camera.main.ScreenPointToRay(Input.mousePosition).RayCastPlane(Vector3.up, Vector3.zero));
+#endif
+			moveTarget.position += moveDir * 2 * Time.deltaTime;
+            transform.LookAt(Camera.main.ScreenPointToRay(mousePos).RayCastPlane(Vector3.up, Vector3.zero));
         }
         [ContextMenu("测试")]
         public void Test()
