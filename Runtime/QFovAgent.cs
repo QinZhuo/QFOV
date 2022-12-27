@@ -8,7 +8,6 @@ namespace QTool.FOV
 {
     public class QFovAgent : MonoBehaviour
     {
-		[QGroup(true)]
         [QName("感知半径")]
         [Range(0,30)]
         public float bodyRadius = 10;
@@ -21,9 +20,7 @@ namespace QTool.FOV
 		[QName("遮挡物Mask")]
 		public LayerMask obstacleMask;
 		[QName("模式")]
-		[QGroup(false)]
 		public QFovMode Mode = QFovMode.边缘检测;
-		[QGroup(true)]
 		[QName("最小障碍物尺寸", nameof(Mode) + "==" + nameof(QFovMode.射线检测))]
 		[Range(0.5f, 3f)]
 		public float minObstacleSize = 1;
@@ -32,7 +29,6 @@ namespace QTool.FOV
 		public float minCastAngel = 1;
 		[QName("边缘容忍角度", nameof(Mode) + "==" + nameof(QFovMode.射线检测))]
 		[Range(5, 20)]
-		[QGroup(false)]
 		public float maxHitAngle = 10;
 
 
