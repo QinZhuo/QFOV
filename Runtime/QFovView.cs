@@ -15,15 +15,7 @@ namespace QTool.FOV
         {
             agent = GetComponentInParent<QFovAgent>();
         }
-        public VertexInfo VI(Vector3 position)
-        {
-            var v= new VertexInfo
-            {
-                position = position
-            };
-            return v;
-        }
-       
+  
         public void Draw(QFovHitInfo last, QFovHitInfo hit)
         {
 
@@ -63,14 +55,8 @@ namespace QTool.FOV
                     : (agent.transform.position + nextDir * agent.GetDistance(nextAngle));
                 var d = agent.transform.position + nextDir * maskRadius;
 
-                QGL.DrawTriangle(
-                     VI(a),
-                     VI(b),
-                     VI(d));
-                QGL.DrawTriangle(
-                      VI(a),
-                      VI(d),
-                      VI(c));
+				QGL.DrawTriangle(a, b, d);
+				QGL.DrawTriangle(a, d, c);
             }
         }
         public void Draw(float startAngle,float endAngle)
@@ -81,8 +67,8 @@ namespace QTool.FOV
         public void OnRenderObject()
         {
             if (agent == null) return;
-            QGL.Start(mat, 0, false);
-            QFovHitInfo? lastInfo = null;
+			QGL.Start(mat,false);
+			QFovHitInfo? lastInfo = null;
             foreach (var hit in agent.hitInfoList)
             {
                 if (lastInfo != null)
